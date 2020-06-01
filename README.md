@@ -21,8 +21,6 @@ Google OptimizeをReactのSSR時に利用するサンプル
 ## Usage
 
 * `src/config.ts`にGoogle OptimizeとGoogle Analyticsのパラメーターを入力してください。
-* <https://optimize.google.com/optimize/home/>
-* <http://analytics.google.com/analytics/web/>
 
 ## 構成
 
@@ -36,6 +34,33 @@ src/
 ├── server.tsx    // サーバーサイドのエントリーポイント
 └── share.ts      // サーバーとクライントで共有するパラメーターのインターフェース
 ```
+
+## Google Analyticsの設定
+
+* <http://analytics.google.com/analytics/web/>
+
+### 目標の指定
+
+![目標の設定](./docs/google-analytics-goal.png)
+
+### Tracking IDの取得
+
+![Tracking IDの取得](./docs/google-analytics-tracking-id.png)
+
+## Google Optimize
+
+* <https://optimize.google.com/optimize/home/>
+
+### Tracking IDの取得
+
+![Tracking IDの取得](./docs/google-optimize-tracking-id.png)
+
+### テストIDの取得
+
+![experiment idの取得](./docs/google-optimize-experiment-id.png)
+
+* Google Analyticsとリンクすることで発行されます。
+* エクスペリエンス単位で発行されます。
 
 ## License
 

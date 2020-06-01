@@ -1,5 +1,5 @@
 {
-  "name": "google-optimizd-react-ssr-sample",
+  "name": "google-optimize-react-ssr-sample",
   "description": "Google OptimizeをReactのSSR時に仕込むサンプル",
   "version": "0.1.0",
   "author": "Himenon",
@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf lib dist",
-    "build": "yarn clean && run-p webpack:build tsc:build",
+    "build": "yarn clean && run-p webpack:build tsc:build && docker:build",
     "develop": "run-p tsc:build:watch develop:server",
     "develop:server": "nodemon --watch lib --watch dist/manifest.json --exec 'node ./lib/server.js'",
     "tsc:build": "tsc -p tsconfig.json",

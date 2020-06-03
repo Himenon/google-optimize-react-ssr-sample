@@ -79,7 +79,7 @@ export const setController = (app: express.Application) => {
           ],
         },
         optimize: {
-          trackingId: config.optimize.trackingId,
+          containerId: config.optimize.containerId,
         },
       },
       shareProps: {

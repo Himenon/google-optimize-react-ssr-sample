@@ -17,7 +17,7 @@ export interface Props {
     };
     // Google Optimize
     optimize?: {
-      trackingId: string;
+      containerId: string;
     };
   };
   // Server SideとClient Sideで共有するのProps
@@ -48,7 +48,7 @@ export const Component: React.FC<Props> = ({
       <head>
         {meta.optimize && (
           <script
-            src={`https://www.googleoptimize.com/optimize.js?id=${meta.optimize.trackingId}`}
+            src={`https://www.googleoptimize.com/optimize.js?id=${meta.optimize.containerId}`}
           />
         )}
         {meta.analytics && (

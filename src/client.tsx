@@ -1,19 +1,19 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as App from "./App";
-import * as Share from "./share";
+import * as App from "./components/App";
+import { generateProps, Props } from "./containers/App";
 
-const getProps = (): Share.Props => {
+const getClientSideRenderingProps = (): Props => {
   return (window as any).__INIT_PROPS__;
-}
+};
 
 const main = async () => {
-  const { optimize } = getProps();
+  const cliendSideRendeinrgProps = getClientSideRenderingProps();
   const container = document.querySelector("body");
-  const props = App.generateProps(optimize);
+  const props = generateProps(cliendSideRendeinrgProps);
   ReactDOM.render(<App.Component {...props} />, container);
 };
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
 });

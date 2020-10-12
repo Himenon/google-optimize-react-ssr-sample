@@ -6,9 +6,9 @@ import express from "express";
 import * as path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import * as Template from "./Template";
-import * as App from "./App";
-import * as Optimize from "./Optimize";
+import * as Client from "../containers/App";
+import * as App from "../components/App";
+import * as Template from "../components/templates/Template";
 
 configure({
   appenders: { [config.site.title]: { type: "console" } },
@@ -27,7 +27,7 @@ export const setMiddleware = (app: express.Application) => {
   app.use(
     cors({
       origin: "*",
-    })
+    }),
   );
   app.use(cookieParser());
 };
@@ -36,9 +36,7 @@ const generateHogeOrFugaTestParams = (req: express.Request, res: express.Respons
   const cookieId = `EXP_${experimentId}`;
   // CookieにA/Bテストのどちらのパターンか保存されている場合はそれを利用する
   const initialId = (req as any).cookies[cookieId];
-  const variationId = (initialId
-    ? parseInt(initialId, 10)
-    : getRandomInt(2)) as Optimize.Props["hogeOrFugaVariationId"];
+  const variationId = initialId ? parseInt(initialId, 10) : getRandomInt(2);
   if (!initialId) {
     const expireDate = new Date(); // 可能ならGoogle Optimizeの集計期間と同じにしたほうが厳格
     expireDate.setDate(expireDate.getDate() + 14); // 14日間
@@ -55,44 +53,40 @@ const generateHogeOrFugaTestParams = (req: express.Request, res: express.Respons
 };
 
 export const setController = (app: express.Application) => {
-  app.use("/assets", express.static(path.join(__dirname, "../dist")));
+  app.use("/assets", express.static(path.join(__dirname, "../../dist")));
   app.use("/", (req: express.Request, res: express.Response) => {
-    const hogeOrFugaParams = generateHogeOrFugaTestParams(
-      req,
-      res,
-      config.optimize.experiment["hoge-or-fuga"].id
-    );
-    const appProps: App.Props = App.generateProps({
-      hogeOrFugaVariationId: hogeOrFugaParams.variationId,
+    const hogeOrFugaParams = generateHogeOrFugaTestParams(req, res, config.optimize.experiment["hoge-or-fuga"].id);
+    const clientSideRederingProps = Client.generateProps({
+      target: {
+        testCase: 0,
+      },
     });
     const templateProps: Template.Props = {
       meta: {
         title: config.site.title,
         description: config.site.description,
-        analytics: {
-          trackingId: config.analytics.trackingId,
-          optimizeExperiments: [
-            {
-              experimentId: hogeOrFugaParams.experimentId,
-              variationId: hogeOrFugaParams.variationId.toString(),
-            },
-          ],
-        },
-        optimize: {
-          containerId: config.optimize.containerId,
-        },
+        googleOptimizeList: [
+          {
+            containerId: "OPT-54BH7RB",
+            experiments: [
+              {
+                googleAnalytics: {
+                  trackingId: "UA-167562669-2",
+                  sendPageView: true,
+                },
+                googleAnalyticsTestId: "mc61s62uSI-b-tBbzwPvew",
+                variationId: hogeOrFugaParams.variationId.toString(),
+              },
+            ],
+          },
+        ],
       },
-      shareProps: {
-        app: appProps,
-        optimize: {
-          hogeOrFugaVariationId: hogeOrFugaParams.variationId,
-        },
-      },
+      clientSideRederingProps,
     };
     const html = ReactDOM.renderToStaticMarkup(
       <Template.Component {...templateProps}>
-        <App.Component {...appProps} />
-      </Template.Component>
+        <App.Component {...clientSideRederingProps} />
+      </Template.Component>,
     );
     res.send(html);
   });

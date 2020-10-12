@@ -1,12 +1,12 @@
 import * as React from "react";
-import * as Types from "./types";
+import * as Types from "../../types";
 import * as GtagScript from "./GtagScript";
 import * as GoogleOptimize from "./GoogleOptimize";
 import * as GoogleOptimizeScript from "./GoogleOptimizeScript";
 import * as ClientSidePropsEmbed from "./ClientSidePropsEmbed";
 const manifest = require("../../../dist/manifest.json");
 
-export interface Props {
+export interface Props<T = any> {
   meta: {
     /**
      * サイトタイトル
@@ -24,7 +24,7 @@ export interface Props {
   /**
    * Server SideとClient Sideで共有するのProps
    */
-  clientSideRederingProps: any;
+  clientSideRederingProps: T;
 }
 /**
  * Server Side Renderingで利用するBody以外のTemplate Component
@@ -40,9 +40,7 @@ export const Component: React.FC<Props> = ({ meta, clientSideRederingProps, chil
       <head>
         <GoogleOptimizeScript.Component containerIds={googleOptimizeContainerIds} />
         <GtagScript.Component trackingIds={googleAnaltyicsTrackingIds} />
-        {meta.googleOptimizeList.map(googleOptimize => (
-          <GoogleOptimize.Component key={googleOptimize.containerId} {...googleOptimize} />
-        ))}
+        <GoogleOptimize.Component googleOptimizeList={meta.googleOptimizeList} />
         <title>{meta.title}</title>
         <meta charSet="UTF-8" />
         <meta name="description" content={meta.description} />

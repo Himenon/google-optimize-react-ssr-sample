@@ -5,13 +5,12 @@ export interface Props {
 }
 
 export const Component: React.FC<Props> = ({ containerIds }) => {
-  if (containerIds.length === 0) {
-    return null;
-  }
   return (
-    <script
-      src={`https://www.googleoptimize.com/optimize.js?id=${containerIds[0]}`}
-    />
+    <>
+      {containerIds.map(containerId => {
+        return <script key={containerId} src={`https://www.googleoptimize.com/optimize.js?id=${containerId}`} />;
+      })}
+    </>
   );
 };
 

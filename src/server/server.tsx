@@ -4,11 +4,11 @@ import { config } from "./config";
 import { configure, getLogger } from "log4js";
 import express from "express";
 import * as path from "path";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+import * as Middleware from "./Middleware";
 import * as Client from "../containers/App";
 import * as App from "../components/App";
 import * as Template from "../components/templates/Template";
+import * as GoogleOptimize from "./google-optimize";
 
 configure({
   appenders: { [config.site.title]: { type: "console" } },
@@ -19,73 +19,26 @@ const logger = getLogger(config.site.title);
 
 const SERVER_PORT: number = parseInt(process.env.PORT || "", 10) || 3000;
 
-const getRandomInt = (max: number): number => {
-  return Math.floor(Math.random() * Math.floor(max));
-};
-
-export const setMiddleware = (app: express.Application) => {
-  app.use(
-    cors({
-      origin: "*",
-    }),
-  );
-  app.use(cookieParser());
-};
-
-const generateHogeOrFugaTestParams = (req: express.Request, res: express.Response, experimentId: string) => {
-  const cookieId = `EXP_${experimentId}`;
-  // CookieにA/Bテストのどちらのパターンか保存されている場合はそれを利用する
-  const initialId = (req as any).cookies[cookieId];
-  const variationId = initialId ? parseInt(initialId, 10) : getRandomInt(2);
-  if (!initialId) {
-    const expireDate = new Date(); // 可能ならGoogle Optimizeの集計期間と同じにしたほうが厳格
-    expireDate.setDate(expireDate.getDate() + 14); // 14日間
-    res.cookie(cookieId, variationId, {
-      httpOnly: true,
-      expires: expireDate,
-    });
-  }
-  return {
-    experimentId,
-    cookieId,
-    variationId,
-  };
-};
-
-export const setController = (app: express.Application) => {
+export const createController = (app: express.Application) => {
   app.use("/assets", express.static(path.join(__dirname, "../../dist")));
   app.use("/", (req: express.Request, res: express.Response) => {
-    const hogeOrFugaParams = generateHogeOrFugaTestParams(req, res, config.optimize.experiment["hoge-or-fuga"].id);
-    const clientSideRederingProps = Client.generateProps({
+    const googleOptimizeList = GoogleOptimize.generateParams(req, res);
+    const clientProps: Client.Props = {
       target: {
-        testCase: 0,
+        testCase: 1,
       },
-    });
-    const templateProps: Template.Props = {
+    };
+    const templateProps: Template.Props<Client.Props> = {
       meta: {
         title: config.site.title,
         description: config.site.description,
-        googleOptimizeList: [
-          {
-            containerId: "OPT-54BH7RB",
-            experiments: [
-              {
-                googleAnalytics: {
-                  trackingId: "UA-167562669-2",
-                  sendPageView: true,
-                },
-                googleAnalyticsTestId: "mc61s62uSI-b-tBbzwPvew",
-                variationId: hogeOrFugaParams.variationId.toString(),
-              },
-            ],
-          },
-        ],
+        googleOptimizeList,
       },
-      clientSideRederingProps,
+      clientSideRederingProps: clientProps,
     };
     const html = ReactDOM.renderToStaticMarkup(
       <Template.Component {...templateProps}>
-        <App.Component {...clientSideRederingProps} />
+        <App.Component {...Client.generateProps(clientProps)} />
       </Template.Component>,
     );
     res.send(html);
@@ -94,8 +47,8 @@ export const setController = (app: express.Application) => {
 
 const createServer = () => {
   const app = express();
-  setMiddleware(app);
-  setController(app);
+  Middleware.create(app);
+  createController(app);
   return app;
 };
 
